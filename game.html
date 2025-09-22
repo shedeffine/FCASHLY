@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial Personality Challenge</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+* {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
+body {background:linear-gradient(135deg,#1a2a6c,#b21f1f,#fdbb2d);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;color:white;overflow-x:hidden;}
+.container {width:100%;max-width:1000px;background:rgba(0,0,0,0.7);border-radius:20px;padding:25px;box-shadow:0 15px 35px rgba(0,0,0,0.5);text-align:center;}
+h1 {color:#fdbb2d;margin-bottom:20px;font-size:2.8rem;text-shadow:3px 3px 6px rgba(0,0,0,0.5);letter-spacing:1.5px;}
+.game-info {display:flex;justify-content:space-between;margin-bottom:25px;font-size:1.3rem;background:rgba(0,0,0,0.5);padding:15px;border-radius:15px;}
+#game-area {position:relative;width:100%;height:500px;margin:0 auto;border-radius:15px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,0.6);border:4px solid #fdbb2d;background:linear-gradient(to bottom,#2c3e50,#4a6491);}
+#road {position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:300px;height:100%;background:#7f8c8d;border-top:4px dashed #ecf0f1;}
+.gate {position:absolute;width:400px;height:180px;display:flex;justify-content:space-between;left:50%;transform:translateX(-50%);}
+.door {width:180px;height:180px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1.2rem;color:white;box-shadow:0 0 15px rgba(0,0,0,0.4);padding:10px;text-align:center;cursor:pointer;transition:all 0.3s;background:linear-gradient(to bottom,#3498db,#2980b9);border:3px solid #2c3e50;}
+.door:hover {transform:translateY(-5px);box-shadow:0 5px 20px rgba(0,0,0,0.6);background:linear-gradient(to bottom,#3498db,#20638f);}
+.door-question {font-size:0.9rem;margin-bottom:10px;font-weight:bold;height:60px;display:flex;align-items:center;justify-content:center;}
+.door-icon {font-size:2rem;margin-bottom:10px;}
+#character {position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:60px;height:90px;z-index:10;}
+.character-body {position:absolute;width:40px;height:60px;background:#2196F3;bottom:0;left:10px;border-radius:10px 10px 0 0;animation:bodyBounce 0.5s infinite alternate;}
+.character-head {position:absolute;width:30px;height:30px;background:#FFD54F;border-radius:50%;bottom:60px;left:15px;animation:headTilt 2s infinite alternate;}
+.character-leg {position:absolute;width:12px;height:30px;background:#1976D2;bottom:-30px;border-radius:0 0 5px 5px;}
+#left-leg {left:14px;animation:walkLeft 0.5s infinite alternate;}
+#right-leg {right:14px;animation:walkRight 0.5s infinite alternate;}
+@keyframes bodyBounce {from {transform:translateY(0px);} to {transform:translateY(-3px);}}
+@keyframes headTilt {from {transform:rotate(-5deg);} to {transform:rotate(5deg);}}
+@keyframes walkLeft {0% {transform:rotate(0deg);height:30px;}50% {transform:rotate(15deg);height:35px;}100% {transform:rotate(-10deg);height:40px;}}
+@keyframes walkRight {0% {transform:rotate(0deg);height:40px;}50% {transform:rotate(-15deg);height:35px;}100% {transform:rotate(10deg);height:30px;}}
+.controls {margin:25px 0;display:flex;justify-content:center;gap:25px;}
+button {padding:15px 30px;font-size:1.2rem;background:#fdbb2d;color:#1a2a6c;border:none;border-radius:50px;cursor:pointer;transition:all 0.3s;font-weight:bold;box-shadow:0 5px 15px rgba(0,0,0,0.3);}
+button:hover {background:#ffcc44;transform:scale(1.05);}
+button:active {transform:scale(0.95);}
+#timer {height:10px;background:#ddd;border-radius:5px;margin:15px 0;overflow:hidden;width:400px;margin:15px auto;}
+#time-left {height:100%;background:#4CAF50;width:100%;transition:width 1s linear;}
+.stats {display:flex;justify-content:space-around;margin-top:20px;}
+.stat-item {background:rgba(0,0,0,0.4);padding:10px 20px;border-radius:10px;display:flex;flex-direction:column;align-items:center;}
+.stat-value {font-size:1.8rem;font-weight:bold;color:#fdbb2d;}
+.stat-label {font-size:1rem;color:#ccc;}
+.instructions {background:rgba(0,0,0,0.5);padding:20px;border-radius:15px;margin-top:25px;text-align:left;}
+.instructions h2 {color:#fdbb2d;margin-bottom:15px;font-size:1.5rem;}
+.instructions ul {padding-left:25px;}
+.instructions li {margin-bottom:10px;line-height:1.5;}
+.game-over {position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);padding:30px;border-radius:15px;text-align:center;z-index:90;display:none;}
+.game-over h2 {color:#FF5252;font-size:3rem;margin-bottom:20px;}
+.game-over p {font-size:1.5rem;margin-bottom:10px;}
+.highlight {box-shadow:0 0 20px 5px yellow;transform:scale(1.05);}
+.correct {background:linear-gradient(to bottom,#4CAF50,#2E7D32)!important;}
+.incorrect {background:linear-gradient(to bottom,#F44336,#D32F2F)!important;}
+.celebration {position:absolute;font-size:3rem;color:gold;pointer-events:none;z-index:50;opacity:0;animation:celebrate 2s ease-out;}
+@keyframes celebrate {0% {opacity:1;transform:translate(-50%,-50%) scale(0.5);} 100% {opacity:0;transform:translate(-50%,-50%) scale(2.5);}}
+.question-display {position:absolute;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);padding:15px;border-radius:10px;text-align:center;width:80%;z-index:5;font-size:1.2rem;border:2px solid #fdbb2d;}
+.difficulty-indicator {position:absolute;top:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);padding:5px 15px;border-radius:10px;text-align:center;z-index:5;font-size:1rem;border:1px solid #fdbb2d;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1><i class="fas fa-brain"></i> Financial Personality Challenge</h1>
+<div class="game-info">
+<div id="score"><i class="fas fa-dollar-sign"></i> Score: <span>0</span></div>
+<div id="lives"><i class="fas fa-heart"></i> Lives: <span>3</span></div>
+<div id="level"><i class="fas fa-chart-line"></i> Level: <span>1</span></div>
+</div>
+<div id="game-area">
+<div id="road"></div>
+<div class="question-display"><span id="current-question">Loading...</span></div>
+<div class="difficulty-indicator">Difficulty: <span id="difficulty">Real World</span></div>
+<div class="gate" id="gate" style="bottom:350px;">
+<div id="left-door" class="door"><div class="door-icon"><i class="fas fa-door-open"></i></div><div class="door-question">Option A</div></div>
+<div id="right-door" class="door"><div class="door-icon"><i class="fas fa-door-open"></i></div><div class="door-question">Option B</div></div>
+</div>
+<div id="character">
+<div class="character-head"></div>
+<div class="character-body"></div>
+<div id="left-leg" class="character-leg"></div>
+<div id="right-leg" class="character-leg"></div>
+</div>
+<div class="game-over">
+<h2><i class="fas fa-skull"></i> GAME OVER</h2>
+<p>Final Score: <span id="final-score">0</span></p>
+<p>Level Reached: <span id="final-level">1</span></p>
+<p id="personality-summary"></p>
+<button id="play-again-btn"><i class="fas fa-redo"></i> Play Again</button>
+</div>
+</div>
+<div id="timer"><div id="time-left"></div></div>
+<div class="controls">
+<button id="left-btn"><i class="fas fa-arrow-left"></i> Left Door</button>
+<button id="right-btn">Right Door <i class="fas fa-arrow-right"></i></button>
+<button id="start-btn"><i class="fas fa-play"></i> Start Game</button>
+</div>
+<div class="stats">
+<div class="stat-item"><div class="stat-value" id="total-score">0</div><div class="stat-label">Total Score</div></div>
+<div class="stat-item"><div class="stat-value" id="correct-answers">0</div><div class="stat-label">Correct Answers</div></div>
+<div class="stat-item"><div class="stat-value" id="gates-passed">0</div><div class="stat-label">Gates Passed</div></div>
+</div>
+<div class="instructions">
+<h2><i class="fas fa-info-circle"></i> How to Play</h2>
+<ul>
+<li>Press "Start Game" to begin</li>
+<li>Read the question carefully</li>
+<li>Choose the option that best fits your choice/personality</li>
+<li>Correct or "optimal" options give points</li>
+<li>Wrong choices cost a life</li>
+<li>3 lives total - game ends when you run out</li>
+<li>At the end, your financial personality will be analyzed</li>
+<li>Use buttons or arrow keys (← →) to select</li>
+</ul>
+</div>
+<script>
+// GAME VARIABLES
+let score=0,lives=3,level=1,totalScore=0,correctAnswers=0,gatesPassed=0,currentQuestion=null,gateSpeed=0.3,gatePosition=350,gateActive=false,gameStarted=false,gameOver=false,timeLimit=12,timerInterval=null;
+let traits={}; // Initialized as an empty object
+let randomizedQuestions = [];
+
+// QUESTIONS - Replaced with the data from questions.json
+const questions = [
+  {
+    "q": "You get a bonus from your job. Should you use it for a new phone or save it for a down payment on a place to live?",
+    "options": [
+      { "text": "Buy the new phone now. I'll need it for work and staying in touch.", "value": "immediate_gratification", "isCorrect": false },
+      { "text": "Save it for the future. I want to be financially secure.", "value": "long_term_goal", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "A friend asks to borrow money for an emergency. You have the cash, but you're also part of a local Self-Help Group (SHG) scheme you've been saving for. What do you do?",
+    "options": [
+      { "text": "Lend the money to your friend. Friendship is more important.", "value": "social_pressure", "isCorrect": false },
+      { "text": "Decline to lend the money and explain your commitment to the SHG. It's for my future.", "value": "personal_investment", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "You have a small amount of money for food for the week. Should you buy a large packet of chips to fill up on quickly or buy staple items to make small meals that last longer?",
+    "options": [
+      { "text": "Buy the chips. They're cheap, easy, and give me a quick energy boost.", "value": "short_term_convenience", "isCorrect": false },
+      { "text": "Buy the staple items. It's more work, but it will last me the entire week.", "value": "budget_savvy", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "You get a new job but the pay is low and informal. Should you keep working there, or risk finding a better-paying job with formal contracts?",
+    "options": [
+      { "text": "Keep the current job. A little income is better than none.", "value": "risk_averse", "isCorrect": false },
+      { "text": "Look for a better job. I deserve formal contracts and better pay.", "value": "growth_oriented", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "Your family is in a financial crisis and asks you for all your savings. What do you do?",
+    "options": [
+      { "text": "Give them everything. Family comes first, no matter what.", "value": "family_obligation", "isCorrect": false },
+      { "text": "Keep some of the savings for yourself, but give them what you can.", "value": "self_preservation", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "You need to learn a new skill to get a better job, but the classes are expensive. What's your first step?",
+    "options": [
+      { "text": "Borrow money to pay for the course.", "value": "debt_for_investment", "isCorrect": false },
+      { "text": "Find free online resources to learn the skill first.", "value": "free_resources", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "You get a small grant to start a business. What's the best use of the funds?",
+    "options": [
+      { "text": "Spend it all on marketing to get my name out there.", "value": "aggressive_marketing", "isCorrect": false },
+      { "text": "Buy the bare minimum equipment to get started and save the rest for emergencies.", "value": "capital_preservation", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "A bank offers you a loan for a personal expense. What do you need to find out before you sign?",
+    "options": [
+      { "text": "Just the monthly payment and the loan amount.", "value": "incomplete_understanding", "isCorrect": false },
+      { "text": "The interest rate, total amount to repay, and any hidden fees.", "value": "financial_literacy", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "You have a side hustle selling goods you make. Should you sell on social media or at a local market?",
+    "options": [
+      { "text": "Social media. It's free and I can reach more people.", "value": "digital_reach", "isCorrect": false },
+      { "text": "Local market. It builds a sense of community and customer loyalty.", "value": "local_community", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "Your phone breaks unexpectedly, and you need it for work. You have some money saved. What do you do?",
+    "options": [
+      { "text": "Buy the cheapest used phone I can find to get by.", "value": "frugal_solution", "isCorrect": true },
+      { "text": "Buy the best new phone I can afford to avoid future issues.", "value": "quality_investment", "isCorrect": false }
+    ]
+  },
+  {
+    "q": "You find a formal job with a good salary, but it's far from home. What's your top priority?",
+    "options": [
+      { "text": "The higher salary. I can deal with the long commute for more money.", "value": "prioritize_income", "isCorrect": false },
+      { "text": "The commute time. It's not worth the stress and cost of travel.", "value": "prioritize_wellbeing", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "You have a choice between two jobs. One pays a little more, but is unstable. The other pays less, but is secure. What do you choose?",
+    "options": [
+      { "text": "The higher-paying, unstable job. The potential for more money is worth the risk.", "value": "risk_taker", "isCorrect": false },
+      { "text": "The stable, lower-paying job. Stability is key to planning my future.", "value": "security_seeker", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "You suddenly face a major medical expense. What do you do?",
+    "options": [
+      { "text": "Borrow money from a friend or family member, even if it puts strain on the relationship.", "value": "informal_borrowing", "isCorrect": false },
+      { "text": "Try to negotiate a payment plan with the hospital or provider.", "value": "negotiation", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "A friend offers you a 'get rich quick' investment opportunity. What's your reaction?",
+    "options": [
+      { "text": "Invest immediately. This could be my big break!", "value": "impulsive_risk", "isCorrect": false },
+      { "text": "Ask for more details and do research on the investment before committing any money.", "value": "due_diligence", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "You're considering starting a small farm. Should you use your savings to buy land or invest in seeds and supplies for a cooperative garden?",
+    "options": [
+      { "text": "Buy the land. Owning my own property is the best way to secure my future.", "value": "individual_ownership", "isCorrect": false },
+      { "text": "Invest in the cooperative. Sharing resources will help everyone in the community succeed.", "value": "community_investment", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "You're selling homemade goods and a customer offers to pay with a digital wallet. What do you do?",
+    "options": [
+      { "text": "Decline the payment and ask for cash. I don't trust digital transactions.", "value": "digital_distrust", "isCorrect": false },
+      { "text": "Accept the payment. I'll need to learn how to use digital wallets to grow my business.", "value": "embracing_technology", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "You're trying to build a credit history to get a loan for a car. What's a good first step?",
+    "options": [
+      { "text": "Take out a credit card and use it for big purchases.", "value": "aggressive_credit_building", "isCorrect": false },
+      { "text": "Open a small credit card and use it for small, regular expenses that I can pay off right away.", "value": "responsible_credit_building", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "Your income is unstable, and you're worried about making rent. What's your first move?",
+    "options": [
+      { "text": "Ignore the problem and hope a job comes through soon.", "value": "avoidance", "isCorrect": false },
+      { "text": "Talk to my landlord about my situation and try to work out a new payment plan.", "value": "proactive_communication", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "You have a friend who is bad with money and constantly asks for loans. How do you handle this?",
+    "options": [
+      { "text": "Continue to lend them money, because I don't want to lose the friendship.", "value": "enabling_behavior", "isCorrect": false },
+      { "text": "Set a firm boundary and tell them I can no longer lend money.", "value": "setting_boundaries", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "You're offered a promotion that comes with more responsibility but also a longer commute. How do you weigh your options?",
+    "options": [
+      { "text": "Focus only on the higher salary. It's the most important factor.", "value": "income_focus", "isCorrect": false },
+      { "text": "Think about the extra time and cost of the commute. Is it worth the salary increase?", "value": "cost_benefit_analysis", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "You're trying to save money but your friends are constantly inviting you to go out and spend. What do you do?",
+    "options": [
+      { "text": "Go out with them and spend money so you don't miss out on social events.", "value": "peer_pressure", "isCorrect": false },
+      { "text": "Suggest free or low-cost activities you can do together.", "value": "proactive_saving", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "Your community is pooling resources to buy a piece of land to grow food. What is your role?",
+    "options": [
+      { "text": "Stay out of it. It's a risk and it might fail.", "value": "risk_avoidance", "isCorrect": false },
+      { "text": "Contribute what you can and help with the work. Collective action is powerful.", "value": "community_participation", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "You need to buy a computer for your online classes. What do you do?",
+    "options": [
+      { "text": "Take out a high-interest loan to buy a brand new one.", "value": "high_cost_education", "isCorrect": false },
+      { "text": "Look for a used or refurbished computer to save money.", "value": "frugal_tech", "isCorrect": true }
+    ]
+  },
+  {
+    "q": "A big company is hiring, but they require a long application process and a formal interview. What do you do?",
+    "options": [
+      { "text": "Don't bother. The process is too complicated and intimidating.", "value": "intimidation", "isCorrect": false },
+      { "text": "Prepare thoroughly and apply. A formal job could provide stability and benefits.", "value": "strategic_career_move", "isCorrect": true }
+    ]
+  }
+];
+
+// HTML ELEMENTS
+const leftDoor=document.getElementById('left-door');
+const rightDoor=document.getElementById('right-door');
+const leftBtn=document.getElementById('left-btn');
+const rightBtn=document.getElementById('right-btn');
+const startBtn=document.getElementById('start-btn');
+const scoreElement=document.getElementById('score').querySelector('span');
+const livesElement=document.getElementById('lives').querySelector('span');
+const levelElement=document.getElementById('level').querySelector('span');
+const totalScoreElement=document.getElementById('total-score');
+const correctAnswersElement=document.getElementById('correct-answers');
+const gatesPassedElement=document.getElementById('gates-passed');
+const gameOverScreen=document.querySelector('.game-over');
+const finalScoreElement=document.getElementById('final-score');
+const finalLevelElement=document.getElementById('final-level');
+const personalitySummary=document.getElementById('personality-summary');
+const currentQuestionElement=document.getElementById('current-question');
+const gate=document.getElementById('gate');
+const difficultyElement=document.getElementById('difficulty');
+const timeLeft=document.getElementById('time-left');
+
+// SHUFFLE
+function shuffleArray(array){for(let i=array.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[array[i],array[j]]=[array[j],array[i]];}return array;}
+
+// DYNAMICALLY INITIALIZE TRAITS BASED ON THE NEW QUESTIONS
+function initializeTraits() {
+    traits = {};
+    const allValues = new Set();
+    questions.forEach(q => {
+        q.options.forEach(option => allValues.add(option.value));
+    });
+    allValues.forEach(value => {
+        traits[value] = 0;
+    });
+}
+
+// LOAD NEW QUESTION AND RANDOMIZE DOORS
+function loadNewQuestion(){
+// Get the next question from our randomized list
+currentQuestion = randomizedQuestions.shift();
+
+if (!currentQuestion) {
+  // If we run out of questions, end the game or handle it as you see fit.
+  // For now, let's just reset the questions.
+  endGame();
+  return;
+}
+
+// Shuffle the options to make sure they are in a random order
+let options = shuffleArray(currentQuestion.options);
+
+// Display the question and the first two options
+currentQuestionElement.textContent = currentQuestion.q;
+leftDoor.dataset.trait = options[0].value;
+leftDoor.dataset.isCorrect = options[0].isCorrect;
+leftDoor.querySelector('.door-question').textContent = options[0].text;
+rightDoor.dataset.trait = options[1].value;
+rightDoor.dataset.isCorrect = options[1].isCorrect;
+rightDoor.querySelector('.door-question').textContent = options[1].text;
+
+difficultyElement.textContent="Real World";
+}
+
+// TIMER
+function startTimer(){
+let timeRemaining=timeLimit;
+timeLeft.style.width='100%'; timeLeft.style.background='#4CAF50';
+if(timerInterval) clearInterval(timerInterval);
+timerInterval=setInterval(()=>{
+timeRemaining--; let perc=(timeRemaining/timeLimit)*100; timeLeft.style.width=perc+'%';
+if(perc<30) timeLeft.style.background='#F44336'; else if(perc<60) timeLeft.style.background='#FFC107';
+if(timeRemaining<=0){clearInterval(timerInterval);timeUp();}
+},1000);
+}
+
+// TIME UP
+function timeUp(){if(!gateActive) return;gateActive=false;loseLife();showCelebration("Time's Up! -1 Life",'#F44336');setTimeout(resetGate,1000);}
+
+// LOSE LIFE
+function loseLife(){lives--;livesElement.textContent=lives;
+if(lives<=0) endGame();}
+
+// CHOOSE DOOR
+function chooseDoor(side){
+    if(!gateActive || gameOver) return;
+    gateActive = false;
+    clearInterval(timerInterval);
+
+    const chosenDoor = side === 'left' ? leftDoor : rightDoor;
+    const isCorrect = chosenDoor.dataset.isCorrect === 'true';
+
+    // Apply color to the chosen door
+    if (isCorrect) {
+        chosenDoor.classList.add('correct');
+        updateScore(10);
+        correctAnswers++;
+        showCelebration('+10', '#4CAF50');
+    } else {
+        chosenDoor.classList.add('incorrect');
+        loseLife();
+        showCelebration('Incorrect! -1 Life', '#F44336');
+    }
+
+    // Apply colors to both doors for a moment
+    const otherDoor = side === 'left' ? rightDoor : leftDoor;
+    if (otherDoor.dataset.isCorrect === 'true') {
+        otherDoor.classList.add('correct');
+    } else {
+        otherDoor.classList.add('incorrect');
+    }
+
+    gatesPassed++;
+    updateStats();
+    setTimeout(resetGate, 1000);
+}
+
+// UPDATE STATS
+function updateStats(){scoreElement.textContent=score;totalScoreElement.textContent=totalScore;correctAnswersElement.textContent=correctAnswers;gatesPassedElement.textContent=gatesPassed;level=Math.floor(correctAnswers/5)+1;levelElement.textContent=level;}
+
+// UPDATE SCORE
+function updateScore(val){score+=val;totalScore+=val;}
+
+// RESET GATE
+function resetGate(){gatePosition=350;gateActive=false;leftDoor.classList.remove('correct','incorrect');rightDoor.classList.remove('correct','incorrect');loadNewQuestion();setTimeout(()=>{gateActive=true;startTimer();},1000);}
+
+// END GAME
+function endGame(){
+    gameOver = true;
+    gameOverScreen.style.display = 'block';
+    finalScoreElement.textContent = totalScore;
+    finalLevelElement.textContent = level;
+
+    // Determine personality summary based on correct/incorrect choices
+    let incorrectAnswers = gatesPassed - correctAnswers;
+    let summaryText = "";
+
+    if (correctAnswers / gatesPassed >= 0.8) {
+        summaryText = "You show a very strong understanding of effective financial decisions. You are a Financial Pro!";
+    } else if (correctAnswers / gatesPassed >= 0.5) {
+        summaryText = "You have a solid foundation in financial choices. You are a Balanced Planner!";
+    } else {
+        summaryText = "You tend to make choices that may have financial risks. You are a Risk Taker!";
+    }
+    personalitySummary.textContent = "Financial Personality: " + summaryText;
+}
+
+// CELEBRATION
+function showCelebration(msg,color){let c=document.createElement('div');c.className='celebration';c.textContent=msg;c.style.color=color;c.style.left=Math.random()*80+10+'%';c.style.top=Math.random()*50+10+'%';document.body.appendChild(c);setTimeout(()=>c.remove(),1500);}
+
+// ANIMATE GATE
+function updatePositions(){if(gameOver||!gameStarted) return;gatePosition-=gateSpeed;gate.style.bottom=gatePosition+'px';if(gatePosition<=50){if(gateActive){gateActive=false;loseLife();showCelebration('Missed! -1 Life','#F44336');setTimeout(resetGate,1000);}}requestAnimationFrame(updatePositions);}
+
+// KEY CONTROLS
+document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft') chooseDoor('left');else if(e.key==='ArrowRight') chooseDoor('right');});
+
+// BUTTON CONTROLS
+leftBtn.addEventListener('click',()=>chooseDoor('left'));
+rightBtn.addEventListener('click',()=>chooseDoor('right'));
+startBtn.addEventListener('click',()=>{
+gameStarted=true;
+gameOver=false;
+score=0;
+totalScore=0;
+lives=3;
+level=1;
+gatesPassed=0;
+correctAnswers=0;
+initializeTraits();
+updateStats();
+gameOverScreen.style.display='none';
+
+// Shuffle the full list of questions at the start of each new game
+randomizedQuestions = shuffleArray([...questions]);
+
+// Start the game loop
+resetGate();
+updatePositions();
+});
+
+// PLAY AGAIN
+document.getElementById('play-again-btn').addEventListener('click',()=>{startBtn.click();});
+</script>
+</body>
+</html>

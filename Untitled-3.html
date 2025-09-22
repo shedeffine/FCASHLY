@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Personality Adventure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #game-container {
+            width: 800px;
+            height: 600px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(#87CEEB, #fff);
+        }
+
+        #road-background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #555 0%, #777 10%, #777 90%, #555 100%);
+            background-size: 100% 50px;
+            z-index: 1;
+        }
+
+        .road-line {
+            position: absolute;
+            left: 50%;
+            width: 10px;
+            height: 40px;
+            background: yellow;
+            transform: translateX(-50%);
+        }
+
+        #character {
+            position: absolute;
+            bottom: 100px;
+            left: 50px;
+            z-index: 10;
+            transition: left 0.5s ease, bottom 0.5s ease;
+        }
+
+        .character-body {
+            width: 40px;
+            height: 60px;
+            background: #3498db;
+            border-radius: 10px 10px 0 0;
+            position: relative;
+        }
+
+        .character-head {
+            width: 30px;
+            height: 30px;
+            background: #ffdbac;
+            border-radius: 50%;
+            position: absolute;
+            top: -20px;
+            left: 5px;
+        }
+
+        .leg {
+            width: 10px;
+            height: 25px;
+            background: #2980b9;
+            position: absolute;
+            bottom: -25px;
+            border-radius: 0 0 5px 5px;
+        }
+
+        .leg-left {
+            left: 8px;
+            animation: walk 0.5s infinite alternate;
+        }
+
+        .leg-right {
+            right: 8px;
+            animation: walk 0.5s infinite alternate-reverse;
+        }
+
+        @keyframes walk {
+            from { transform: rotate(-5deg); }
+            to { transform: rotate(5deg); }
+        }
+
+        #doors-container {
+            position: absolute;
+            bottom: 100px;
+            right: 50px;
+            display: flex;
+            gap: 20px;
+            z-index: 5;
+        }
+
+        .door {
+            width: 80px;
+            height: 150px;
+            background: #8B4513;
+            border: 5px solid #5D4037;
+            position: relative;
+            cursor: pointer;
+            transform-origin: left;
+            transition: transform 0.5s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: gold;
+            font-weight: bold;
+            font-size: 24px;
+            text-shadow: 1px 1px 2px black;
+        }
+
+        .door:hover {
+            transform: perspective(500px) rotateY(-30deg);
+        }
+
+        .door-knob {
+            width: 10px;
+            height: 10px;
+            background: gold;
+            border-radius: 50%;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+        }
+
+        #question-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 20;
+            display: none;
+        }
+
+        #question-text {
+            margin-bottom: 15px;
+            font-size: 18px;
+            line-height: 1.5;
+            color: #fff;
+        }
+
+        #options-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .option-btn {
+            padding: 10px 20px;
+            background: #3498db;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .option-btn:hover {
+            background: #2980b9;
+        }
+
+        #score-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 5px;
+            z-index: 20;
+            display: flex;
+            gap: 15px;
+            color: #fff;
+        }
+
+        .score-category {
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #start-screen, #result-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 30;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #result-screen {
+            display: none;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: gold;
+        }
+
+        h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: #3498db;
+        }
+
+        p {
+            margin-bottom: 20px;
+            max-width: 80%;
+            line-height: 1.6;
+            color: #fff;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            background: #3498db;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        .personality-badge {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: gold;
+            color: black;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .moving-object {
+            position: absolute;
+            z-index: 2;
+        }
+
+        .cloud {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+        }
+
+        #lives-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 5px;
+            z-index: 20;
+            color: gold;
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="road-background">
+            <!-- Road lines will be generated by JavaScript -->
+        </div>
+        
+        <div id="character">
+            <div class="character-head"></div>
+            <div class="character-body">
+                <div class="leg leg-left"></div>
+                <div class="leg leg-right"></div>
+            </div>
+        </div>
+        
+        <div id="doors-container">
+            <div class="door" data-type="saver">
+                <span>💰</span>
+                <div class="door-knob"></div>
+            </div>
+            <div class="door" data-type="spender">
+                <span>🛍️</span>
+                <div class="door-knob"></div>
+            </div>
+            <div class="door" data-type="investor">
+                <span>📈</span>
+                <div class="door-knob"></div>
+            </div>
+        </div>
+        
+        <div id="question-container">
+            <div id="question-text"></div>
+            <div id="options-container">
+                <!-- Options will be added by JavaScript -->
+            </div>
+        </div>
+        
+        <div id="score-container">
+            <div class="score-category">
+                <div class="score-label">Saver</div>
+                <div class="score-value" id="saver-score">0</div>
+            </div>
+            <div class="score-category">
+                <div class="score-label">Spender</div>
+                <div class="score-value" id="spender-score">0</div>
+            </div>
+            <div class="score-category">
+                <div class="score-label">Investor</div>
+                <div class="score-value" id="investor-score">0</div>
+            </div>
+        </div>
+        
+        <div id="lives-container">
+            Lives: <span id="lives-value">3</span>
+        </div>
+        
+        <div id="start-screen">
+            <h1>Financial Personality Adventure</h1>
+            <p>Walk down the road of financial decisions! Choose doors that represent different approaches to money: Saving, Spending, or Investing.</p>
+            <p>Each door will present you with financial scenarios. Your choices will determine your financial personality type!</p>
+            <button class="btn" id="start-btn">Start Journey</button>
+        </div>
+        
+        <div id="result-screen">
+            <h1>Your Financial Personality</h1>
+            <h2 id="personality-type"></h2>
+            <p id="personality-description"></p>
+            <div class="personality-badge" id="personality-badge"></div>
+            <button class="btn" id="restart-btn" style="margin-top: 30px;">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game elements
+            const gameContainer = document.getElementById('game-container');
+            const roadBackground = document.getElementById('road-background');
+            const character = document.getElementById('character');
+            const doors = document.querySelectorAll('.door');
+            const questionContainer = document.getElementById('question-container');
+            const questionText = document.getElementById('question-text');
+            const optionsContainer = document.getElementById('options-container');
+            const startScreen = document.getElementById('start-screen');
+            const resultScreen = document.getElementById('result-screen');
+            const startBtn = document.getElementById('start-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            
+            // Score elements
+            const saverScoreEl = document.getElementById('saver-score');
+            const spenderScoreEl = document.getElementById('spender-score');
+            const investorScoreEl = document.getElementById('investor-score');
+            
+            // Result elements
+            const personalityTypeEl = document.getElementById('personality-type');
+            const personalityDescriptionEl = document.getElementById('personality-description');
+            const personalityBadgeEl = document.getElementById('personality-badge');
+            
+            // Game state
+            let scores = {
+                saver: 0,
+                spender: 0,
+                investor: 0
+            };
+            
+            let currentQuestionIndex = 0;
+            let lives = 3;
+            
+            // Create road lines
+            function createRoadLines() {
+                for (let i = 0; i < 15; i++) {
+                    const line = document.createElement('div');
+                    line.className = 'road-line';
+                    line.style.top = (i * 40) + 'px';
+                    roadBackground.appendChild(line);
+                }
+            }
+            
+            // Create moving objects (clouds)
+            function createMovingObjects() {
+                for (let i = 0; i < 5; i++) {
+                    const cloud = document.createElement('div');
+                    cloud.className = 'moving-object cloud';
+                    
+                    // Random size and position
+                    const size = Math.random() * 50 + 30;
+                    cloud.style.width = size + 'px';
+                    cloud.style.height = size / 1.5 + 'px';
+                    cloud.style.top = (Math.random() * 200) + 'px';
+                    cloud.style.left = (Math.random() * 800) + 'px';
+                    
+                    // Random animation
+                    const duration = Math.random() * 30 + 30;
+                    cloud.style.animation = `moveCloud ${duration}s linear infinite`;
+                    
+                    gameContainer.appendChild(cloud);
+                }
+                
+                // Add keyframes for cloud movement
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes moveCloud {
+                        0% { transform: translateX(800px); }
+                        100% { transform: translateX(-100px); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // Financial questions
+            const questions = [
+                {
+                    text: "You receive a $1000 bonus. What do you do?",
+                    options: [
+                        { text: "Put it all into savings", type: "saver", score: 2 },
+                        { text: "Treat yourself to something nice", type: "spender", score: 2 },
+                        { text: "Invest in a diversified index fund", type: "investor", score: 2 },
+                        { text: "Save half, spend half", type: "saver", score: 1 }
+                    ]
+                },
+                {
+                    text: "How do you approach monthly budgeting?",
+                    options: [
+                        { text: "Track every expense meticulously", type: "saver", score: 2 },
+                        { text: "Spend freely and check balance occasionally", type: "spender", score: 2 },
+                        { text: "Allocate funds to different investment vehicles", type: "investor", score: 2 },
+                        { text: "Set rough spending limits for categories", type: "saver", score: 1 }
+                    ]
+                },
+                {
+                    text: "What's your view on credit cards?",
+                    options: [
+                        { text: "Avoid them to prevent debt", type: "saver", score: 2 },
+                        { text: "Great for buying things I want now", type: "spender", score: 2 },
+                        { text: "Use responsibly to build credit history", type: "investor", score: 2 },
+                        { text: "Use only for emergencies", type: "saver", score: 1 }
+                    ]
+                },
+                {
+                    text: "How would you handle an unexpected $500 expense?",
+                    options: [
+                        { text: "Use my emergency fund", type: "saver", score: 2 },
+                        { text: "Put it on credit and pay later", type: "spender", score: 2 },
+                        { text: "Reallocate some investments if needed", type: "investor", score: 2 },
+                        { text: "Cut back on other spending this month", type: "saver", score: 1 }
+                    ]
+                },
+                {
+                    text: "What's your retirement strategy?",
+                    options: [
+                        { text: "Save consistently in a savings account", type: "saver", score: 2 },
+                        { text: "I'll worry about that later", type: "spender", score: 2 },
+                        { text: "Maximize 401(k) and IRA contributions", type: "investor", score: 2 },
+                        { text: "Save what I can when I can", type: "saver", score: 1 }
+                    ]
+                }
+            ];
+
+            // Sound effects (simple placeholders to avoid large blobs)
+            const sounds = {
+                door: new Audio(),
+                correct: new Audio(),
+                wrong: new Audio()
+            };
+
+            function playSound(name) {
+                if (sounds[name]) {
+                    try { sounds[name].play(); } catch (e) { /* ignore autoplay issues */ }
+                }
+            }
+
+            function showQuestion(index) {
+                const q = questions[index];
+                questionText.textContent = q.text;
+                optionsContainer.innerHTML = '';
+                q.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.textContent = opt.text;
+                    btn.addEventListener('click', () => {
+                        scores[opt.type] += opt.score;
+                        updateScores();
+                        playSound('correct');
+                        currentQuestionIndex++;
+                        if (currentQuestionIndex < questions.length) {
+                            showQuestion(currentQuestionIndex);
+                        } else {
+                            endGame();
+                        }
+                    });
+                    optionsContainer.appendChild(btn);
+                });
+                questionContainer.style.display = 'block';
+            }
+
+            function updateScores() {
+                saverScoreEl.textContent = scores.saver;
+                spenderScoreEl.textContent = scores.spender;
+                investorScoreEl.textContent = scores.investor;
+            }
+
+            function endGame() {
+                questionContainer.style.display = 'none';
+                startScreen.style.display = 'none';
+                resultScreen.style.display = 'flex';
+                // Determine personality
+                const max = Math.max(scores.saver, scores.spender, scores.investor);
+                let type = 'Balanced';
+                if (max === scores.saver) type = 'Saver';
+                else if (max === scores.spender) type = 'Spender';
+                else if (max === scores.investor) type = 'Investor';
+
+                personalityTypeEl.textContent = type;
+                personalityDescriptionEl.textContent = 'Your financial personality is: ' + type + '.';
+                personalityBadgeEl.textContent = type;
+            }
+
+            // Door click handling
+            doors.forEach(door => {
+                door.addEventListener('click', () => {
+                    playSound('door');
+                    currentQuestionIndex = 0;
+                    startScreen.style.display = 'none';
+                    questionContainer.style.display = 'block';
+                    showQuestion(currentQuestionIndex);
+                });
+            });
+
+            startBtn.addEventListener('click', () => {
+                startScreen.style.display = 'none';
+                currentQuestionIndex = 0;
+                showQuestion(currentQuestionIndex);
+            });
+
+            restartBtn.addEventListener('click', () => {
+                // reset
+                scores = { saver: 0, spender: 0, investor: 0 };
+                updateScores();
+                resultScreen.style.display = 'none';
+                startScreen.style.display = 'flex';
+            });
+
+            createRoadLines();
+            createMovingObjects();
+            updateScores();
+        });
+    </script>
+</body>
+</html>
